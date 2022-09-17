@@ -2,7 +2,7 @@
 ## Description: Can't you hear me?
 ## APIVersion: 101035
 ## Author: @tdenc
-## Version: 0.4.1
+## Version: 0.4.2
 ## DependsOn: LibAddonMenu-2.0>=32
 ## SavedVariables: ICUSavedVars
 
