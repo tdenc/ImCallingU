@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.3"
+ICU.version = "0.1.4"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -151,7 +151,7 @@ function ICU.OnEventTriggered(eventCode, ...)
     elseif (eventCode == EVENT_TRADE_INVITE_CONSIDERING) then
         if sV.trade then ICU.RegisterUpdate(EVENT_TRADE_INVITE_CONSIDERING) end
     elseif (eventCode == EVENT_TRADE_INVITE_REMOVED) then
-        if sV.trade then ICU.UnregisterUpdate(EVENT_TRADE_INVITE_REMOVED) end
+        if sV.trade then ICU.UnregisterUpdate(EVENT_TRADE_INVITE_CONSIDERING) end
     -- Whisper
     elseif (eventCode == EVENT_CHAT_MESSAGE_CHANNEL) then
         local channelType = ...
