@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.5"
+ICU.version = "0.1.6"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -168,7 +168,7 @@ function ICU.OnEventTriggered(eventCode, ...)
     -- Whisper
     elseif (eventCode == EVENT_CHAT_MESSAGE_CHANNEL) then
         local channelType, _, _, _, fromDisplayName = ...
-        if (sV.chat[channelType] and fromDisplayName ~= GetUnitDisplayName("player")) then
+        if (sV.chat[channelType] and fromDisplayName ~= GetUnitDisplayName("player") and not ICU.isInChat) then
             ICU.RegisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
         end
     end
@@ -201,8 +201,14 @@ function ICU:RegisterEvents()
     -- PreHooks
     ZO_PreHook("AcceptLFGReadyCheckNotification", function() ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE) end)
     ZO_PreHook("DeclineLFGReadyCheckNotification", function() ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE) end)
-    ZO_PreHook(SCENE_MANAGER, "OnChatInputStart", function() ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL) end)
-    ZO_PreHook(SCENE_MANAGER, "OnChatInputEnd", function() ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL) end)
+    ZO_PreHook(SCENE_MANAGER, "OnChatInputStart", function()
+        ICU.isInChat = true
+        ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
+    end)
+    ZO_PreHook(SCENE_MANAGER, "OnChatInputEnd", function()
+        ICU.isInChat = false
+        ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
+    end)
 
 end
 
@@ -210,6 +216,7 @@ end
 function ICU:Initialize()
     ICU.savedVariables = ZO_SavedVars:NewAccountWide("ICUSavedVars", ICU.variableVersion, nil, ICU.defaultSettings)
     ICU.isCalling = false
+    ICU.isInChat = false
     ICU.duration = {}
     ICU.userVolume = tonumber(GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
     ICU.userVibration = GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "1"
