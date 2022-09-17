@@ -1,8 +1,8 @@
 ## Title: I'm Calling U
 ## Description: Can't you hear me?
-## APIVersion: 100035 101031
+## APIVersion: 100035 101031 101032
 ## Author: @tdenc
-## Version: 0.2.0
+## Version: 0.3.0
 ## DependsOn: LibAddonMenu-2.0>=32
 ## SavedVariables: ICUSavedVars
 
