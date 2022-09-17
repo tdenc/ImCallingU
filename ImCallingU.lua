@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.2"
+ICU.version = "0.1.3"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -154,14 +154,9 @@ function ICU.OnEventTriggered(eventCode, ...)
         if sV.trade then ICU.UnregisterUpdate(EVENT_TRADE_INVITE_REMOVED) end
     -- Whisper
     elseif (eventCode == EVENT_CHAT_MESSAGE_CHANNEL) then
-        if sV.whisper then
-            local channelType = ...
-            --if ((channelType == CHAT_CHANNEL_WHISPER) and IsUnitInCombat("player")) then
-            if sV.chat[channelType] then
-                ICU.RegisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
-            elseif (channelType == CHAT_CHANNEL_WHISPER) then
-                ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
-            end
+        local channelType = ...
+        if sV.chat[channelType] then
+            ICU.RegisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
         end
     end
 
