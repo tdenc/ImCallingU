@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.7"
+ICU.version = "0.1.8"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -17,6 +17,7 @@ ICU.defaultSettings = {
     ["duration"] = 300,
     ["vibration"] = 80,
     ["activity"] = true,
+    ["campaign"] = true,
     ["ready"] = true,
     ["friend"] = true,
     ["guild"] = true,
@@ -135,6 +136,18 @@ function ICU.OnEventTriggered(eventCode, ...)
                 ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE)
             end
         end
+    -- Campaign
+    elseif (eventCode == EVENT_CAMPAIGN_QUEUE_STATE_CHANGED) then
+        if sV.campaign then
+            local campaignId, isGroup, state = ...
+            if (state == CAMPAIGN_QUEUE_REQUEST_STATE_CONFIRMING) then
+                ICU.RegisterUpdate(EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
+            else
+                ICU.UnregisterUpdate(EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
+            end
+        end
+    elseif (eventCode == EVENT_CAMPAIGN_QUEUE_LEFT) then
+        ICU.UnregisterUpdate(EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
     -- Ready check
     elseif (eventCode == EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) then
         if sV.ready then ICU.RegisterUpdate(EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) end
@@ -182,6 +195,7 @@ end
 function ICU:RegisterEvents()
     local eventList = {
         EVENT_ACTIVITY_FINDER_STATUS_UPDATE,
+        EVENT_CAMPAIGN_QUEUE_STATE_CHANGED, EVENT_CAMPAIGN_QUEUE_LEFT,
         EVENT_GROUP_ELECTION_NOTIFICATION_ADDED, EVENT_GROUP_ELECTION_NOTIFICATION_REMOVED,
         EVENT_INCOMING_FRIEND_INVITE_ADDED, EVENT_INCOMING_FRIEND_INVITE_REMOVED,
         EVENT_GUILD_INVITE_ADDED, EVENT_GUILD_INVITE_REMOVED,

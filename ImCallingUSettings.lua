@@ -172,6 +172,14 @@ function ICU.CreateSettingsWindow()
                 },
                 {
                     ["type"] = "checkbox",
+                    ["name"] = string.format("%s (%s / %s)", GetString(SI_PLAYER_MENU_CAMPAIGNS), GetString(SI_CAMPAIGNRULESETTYPE1), GetString(SI_CAMPAIGNRULESETTYPE4)),
+                    ["default"] = dS.campaign,
+                    ["getFunc"] = function() return sV.campaign end,
+                    ["setFunc"] = function(newValue) sV.campaign = newValue end,
+                    ["disabled"] = function() return ICU.IsCallingDisabled() end,
+                },
+                {
+                    ["type"] = "checkbox",
                     ["name"] = GetString(SI_NOTIFICATION_FRIEND_INVITE),
                     ["default"] = dS.friend,
                     ["getFunc"] = function() return sV.friend end,
