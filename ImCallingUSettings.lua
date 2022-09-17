@@ -26,9 +26,9 @@ function ICU.CreateSettingsWindow()
     end
 
     local function trialListening()
-        ICU.RegisterUpdate()
+        ICU.RegisterUpdate(-1)
         zo_callLater(function()
-            ICU.UnregisterUpdate()
+            ICU.UnregisterUpdate(-1)
         end, 3000)
     end
     local dS = ICU.defaultSettings
