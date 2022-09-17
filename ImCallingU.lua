@@ -6,8 +6,10 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.0.1"
+ICU.version = "0.1.0"
 ICU.variableVersion = 1
+ICU.chatChannels = {
+}
 ICU.defaultSettings = {
     ["se"] = 2,
     ["volume"] = tonumber(GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)),
@@ -19,6 +21,31 @@ ICU.defaultSettings = {
     ["group"] = true,
     ["duel"] = true,
     ["trade"] = true,
+    ["chat"] = {
+        [CHAT_CHANNEL_WHISPER] = true,
+        [CHAT_CHANNEL_YELL] = false,
+        [CHAT_CHANNEL_SAY] = false,
+        [CHAT_CHANNEL_PARTY] = false,
+        [CHAT_CHANNEL_GUILD_1] = false,
+        [CHAT_CHANNEL_GUILD_2] = false,
+        [CHAT_CHANNEL_GUILD_3] = false,
+        [CHAT_CHANNEL_GUILD_4] = false,
+        [CHAT_CHANNEL_GUILD_5] = false,
+        [CHAT_CHANNEL_OFFICER_1] = false,
+        [CHAT_CHANNEL_OFFICER_2] = false,
+        [CHAT_CHANNEL_OFFICER_3] = false,
+        [CHAT_CHANNEL_OFFICER_4] = false,
+        [CHAT_CHANNEL_OFFICER_5] = false,
+        [CHAT_CHANNEL_ZONE] = false,
+        [CHAT_CHANNEL_ZONE_LANGUAGE_1] = false,
+        [CHAT_CHANNEL_ZONE_LANGUAGE_2] = false,
+        [CHAT_CHANNEL_ZONE_LANGUAGE_3] = false,
+        [CHAT_CHANNEL_ZONE_LANGUAGE_4] = false,
+        [CHAT_CHANNEL_ZONE_LANGUAGE_5] = false,
+        [CHAT_CHANNEL_SYSTEM] = false,
+    },
+    ["combat"] = false,
+    ["pvp"] = false,
 }
 ICU.soundEffects = {
     [1] = "NONE",
@@ -44,13 +71,13 @@ ICU.soundEffects = {
 ---------------------
 --WRAPPER FUNCTIONS--
 ---------------------
-local function isCallingDisabled()
-    -- Do not use IsInGamepadPreferredMode() / IsConsoleUI()
-    return ICU.savedVariables.se == 1 and (GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "0" or ICU.savedVariables.vibration == 0)
-end
-
 local function setVolume(volume)
     SetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME, tostring(volume))
+end
+
+function ICU.IsCallingDisabled()
+    -- Do not use IsInGamepadPreferredMode() / IsConsoleUI()
+    return ICU.savedVariables.se == 1 and (GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "0" or ICU.savedVariables.vibration == 0)
 end
 
 function ICU.PlaySound()
@@ -60,27 +87,29 @@ function ICU.PlaySound()
     PlaySound(ICU.seString)
 end
 
-function ICU.RegisterUpdate()
+function ICU.RegisterUpdate(eventCode)
     if ICU.isCalling then return end
+    if ((IsPlayerInAvAWorld() or IsActiveWorldBattleground()) and ICU.savedVariables.pvp) then return end
+    if (IsUnitInCombat("player") and ICU.savedVariables.combat) then return end
 
     EM:UnregisterForUpdate(ICU.name)
     ICU.isCalling = true
     setVolume(ICU.savedVariables.volume)
     ICU.PlaySound()
-    EM:RegisterForUpdate(ICU.name, 2000, ICU.PlaySound)
+    EM:RegisterForUpdate(string.format("%s_%i", ICU.name, eventCode), 2000, ICU.PlaySound)
 end
 
-function ICU.UnregisterUpdate()
+function ICU.UnregisterUpdate(eventCode)
     ICU.isCalling = false
     setVolume(ICU.userVolume)
-    EM:UnregisterForUpdate(ICU.name)
+    EM:UnregisterForUpdate(string.format("%s_%i", ICU.name, eventCode))
 end
 
 -------------------
 --EVENT FUNCTIONS--
 -------------------
 function ICU.OnEventTriggered(eventCode, ...)
-    if isCallingDisabled() then return end
+    if ICU.IsCallingDisabled() then return end
 
     local sV = ICU.savedVariables
     -- Activity finder
@@ -88,41 +117,52 @@ function ICU.OnEventTriggered(eventCode, ...)
         if sV.activity then
             local result = ...
             if (result == ACTIVITY_FINDER_STATUS_READY_CHECK) then
-                ICU.RegisterUpdate()
+                ICU.RegisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE)
             elseif not HasLFGReadyCheckNotification() then
-                ICU.UnregisterUpdate()
+                ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE)
             end
         end
     -- Ready check
     elseif (eventCode == EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) then
-        if sV.ready then ICU.RegisterUpdate() end
+        if sV.ready then ICU.RegisterUpdate(EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) end
     elseif (eventCode == EVENT_GROUP_ELECTION_NOTIFICATION_REMOVED) then
-        if sV.ready then ICU.UnregisterUpdate() end
+        if sV.ready then ICU.UnregisterUpdate(EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) end
     -- Friend invite
     elseif (eventCode == EVENT_INCOMING_FRIEND_INVITE_ADDED) then
-        if sV.friend then ICU.RegisterUpdate() end
+        if sV.friend then ICU.RegisterUpdate(EVENT_INCOMING_FRIEND_INVITE_ADDED) end
     elseif (eventCode == EVENT_INCOMING_FRIEND_INVITE_REMOVED) then
-        if sV.friend then ICU.UnregisterUpdate() end
+        if sV.friend then ICU.UnregisterUpdate(EVENT_INCOMING_FRIEND_INVITE_ADDED) end
     -- Guild invite
     elseif (eventCode == EVENT_GUILD_INVITE_ADDED) then
-        if sV.guild then ICU.RegisterUpdate() end
+        if sV.guild then ICU.RegisterUpdate(EVENT_GUILD_INVITE_ADDED) end
     elseif (eventCode == EVENT_GUILD_INVITE_REMOVED) then
-        if sV.guild then ICU.UnregisterUpdate() end
+        if sV.guild then ICU.UnregisterUpdate(EVENT_GUILD_INVITE_ADDED) end
     -- Group invite
     elseif (eventCode == EVENT_GROUP_INVITE_RECEIVED) then
-        if sV.group then ICU.RegisterUpdate() end
+        if sV.group then ICU.RegisterUpdate(EVENT_GROUP_INVITE_RECEIVED) end
     elseif (eventCode == EVENT_GROUP_INVITE_REMOVED) then
-        if sV.group then ICU.UnregisterUpdate() end
+        if sV.group then ICU.UnregisterUpdate(EVENT_GROUP_INVITE_RECEIVED) end
     -- Duel invite
     elseif (eventCode == EVENT_DUEL_INVITE_RECEIVED) then
-        if sV.duel then ICU.RegisterUpdate() end
+        if sV.duel then ICU.RegisterUpdate(EVENT_DUEL_INVITE_RECEIVED) end
     elseif (eventCode == EVENT_DUEL_INVITE_REMOVED) then
-        if sV.duel then ICU.UnregisterUpdate() end
+        if sV.duel then ICU.UnregisterUpdate(EVENT_DUEL_INVITE_RECEIVED) end
     -- Trade invite
     elseif (eventCode == EVENT_TRADE_INVITE_CONSIDERING) then
-        if sV.trade then ICU.RegisterUpdate() end
+        if sV.trade then ICU.RegisterUpdate(EVENT_TRADE_INVITE_CONSIDERING) end
     elseif (eventCode == EVENT_TRADE_INVITE_REMOVED) then
-        if sV.trade then ICU.UnregisterUpdate() end
+        if sV.trade then ICU.UnregisterUpdate(EVENT_TRADE_INVITE_REMOVED) end
+    -- Whisper
+    elseif (eventCode == EVENT_CHAT_MESSAGE_CHANNEL) then
+        if sV.whisper then
+            local channelType = ...
+            --if ((channelType == CHAT_CHANNEL_WHISPER) and IsUnitInCombat("player")) then
+            if sV.chat[channelType] then
+                ICU.RegisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
+            elseif (channelType == CHAT_CHANNEL_WHISPER) then
+                ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
+            end
+        end
     end
 
 end
@@ -140,171 +180,22 @@ function ICU:RegisterEvents()
         EVENT_GROUP_INVITE_RECEIVED, EVENT_GROUP_INVITE_REMOVED,
         EVENT_DUEL_INVITE_RECEIVED, EVENT_DUEL_INVITE_REMOVED,
         EVENT_TRADE_INVITE_CONSIDERING, EVENT_TRADE_INVITE_REMOVED,
+        EVENT_CHAT_MESSAGE_CHANNEL,
     }
     for _, key in ipairs(eventList) do
         EM:RegisterForEvent(ICU.name, key, ICU.OnEventTriggered)
     end
-    SLASH_COMMANDS["/icu"] = ICU.UnregisterUpdate
-end
-
--- LibAddonMenu
-function ICU.CreateSettingsWindow()
-    local LAM2 = LibAddonMenu2
-    local panelData = {
-        type = "panel",
-        name = "I'm Calling U",
-        displayName = "I'm Calling U",
-        author = "@tdenc",
-        version = ICU.version,
-        slashCommand = "/icusetting",
-        registerForRefresh = true,
-        registerForDefaults = true,
-        website = "https://www.esoui.com/downloads/info3147-ImCallingU-Dontmissnotification.html",
-    }
-    local cntrlOptionsPanel = LAM2:RegisterAddonPanel("ICU_Settings", panelData)
-
-    local choices = {[1] = GetString(SI_CHECK_BUTTON_OFF)}
-    for i = 2, #ICU.soundEffects do
-        choices[i] = string.format("%i", i - 1)
+    SLASH_COMMANDS["/icu"] = function()
+        for _, key in ipairs(eventList) do
+            ICU.UnregisterUpdate(key)
+        end
     end
-    local choicesValues = {}
-    for i = 1, #ICU.soundEffects do
-        choicesValues[i] = i
-    end
+    -- PreHooks
+    ZO_PreHook("AcceptLFGReadyCheckNotification", function() ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE) end)
+    ZO_PreHook("DeclineLFGReadyCheckNotification", function() ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE) end)
+    ZO_PreHook(SCENE_MANAGER, "OnChatInputStart", function() ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL) end)
+    ZO_PreHook(SCENE_MANAGER, "OnChatInputEnd", function() ICU.UnregisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL) end)
 
-    local function trialListening()
-        ICU.RegisterUpdate()
-        zo_callLater(function()
-            ICU.UnregisterUpdate()
-        end, 3000)
-    end
-    local optionsData = {
-        {
-            ["type"] = "header",
-            ["name"] = GetString(SI_SETTINGSYSTEMPANEL0),
-        },
-        {
-            ["type"] = "dropdown",
-            ["name"] = GetString(SI_CUSTOMERSERVICESUBMITFEEDBACKSUBCATEGORIES103),
-            ["choices"] = choices,
-            ["choicesValues"] = choicesValues,
-            ["default"] = ICU.defaultSettings.se,
-            ["getFunc"] = function() return ICU.savedVariables.se end,
-            ["setFunc"] = function(newValue)
-                ICU.savedVariables.se = newValue
-                ICU.seString = SOUNDS[ICU.soundEffects[newValue]]
-                trialListening()
-            end,
-            ["width"] = "half",
-        },
-        {
-            ["type"] = "slider",
-            ["min"] = 0,
-            ["max"] = 100,
-            ["default"] = ICU.defaultSettings.volume,
-            ["getFunc"] = function() return ICU.savedVariables.volume end,
-            ["setFunc"] = function(newValue)
-                ICU.savedVariables.volume = newValue
-                trialListening()
-            end,
-            ["disabled"] = function() return ICU.savedVariables.se == 1 end,
-            ["width"] = "half",
-        },
-        {
-            ["type"] = "header",
-            ["name"] = GetString(SI_GAMEPAD_SECTION_HEADER),
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_OPTIONS_VIBRATION_GAMEPAD),
-            ["default"] = GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "1",
-            ["getFunc"] = function() return GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "1" end,
-            ["setFunc"] = function(newValue)
-                ICU.userVibration = newValue
-                if newValue then
-                    SetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION, "1")
-                else
-                    SetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION, "0")
-                end
-            end,
-            ["width"] = "half",
-        },
-        {
-            ["type"] = "slider",
-            ["min"] = 0,
-            ["max"] = 100,
-            ["default"] = ICU.defaultSettings.vibration,
-            ["getFunc"] = function() return ICU.savedVariables.vibration end,
-            ["setFunc"] = function(newValue)
-                ICU.savedVariables.vibration = newValue
-                ICU.vibrationIntensity = newValue / 100
-                trialListening()
-            end,
-            ["disabled"] = function() return GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "0" end,
-            ["width"] = "half",
-        },
-        {
-            ["type"] = "header",
-            ["name"] = GetString(SI_SOCIAL_OPTIONS_NOTIFICATIONS),
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_MAIN_MENU_ACTIVITY_FINDER),
-            ["default"] = ICU.defaultSettings.activity,
-            ["getFunc"] = function() return ICU.savedVariables.activity end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.activity = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = string.format("%s / %s", GetString(SI_ACTIVITYFINDERSTATUS4), GetString(SI_NOTIFICATIONTYPE16)),
-            ["default"] = ICU.defaultSettings.ready,
-            ["getFunc"] = function() return ICU.savedVariables.ready end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.ready = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_NOTIFICATION_FRIEND_INVITE),
-            ["default"] = ICU.defaultSettings.friend,
-            ["getFunc"] = function() return ICU.savedVariables.friend end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.friend = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_NOTIFICATION_GUILD_INVITE),
-            ["default"] = ICU.defaultSettings.guild,
-            ["getFunc"] = function() return ICU.savedVariables.guild end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.guild = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_NOTIFICATION_GROUP_INVITE),
-            ["default"] = ICU.defaultSettings.group,
-            ["getFunc"] = function() return ICU.savedVariables.group end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.group = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_NOTIFICATION_DUEL_INVITE),
-            ["default"] = ICU.defaultSettings.duel,
-            ["getFunc"] = function() return ICU.savedVariables.duel end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.duel = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-        {
-            ["type"] = "checkbox",
-            ["name"] = GetString(SI_PROMPT_TITLE_TRADE_INVITE_PROMPT),
-            ["default"] = ICU.defaultSettings.trade,
-            ["getFunc"] = function() return ICU.savedVariables.trade end,
-            ["setFunc"] = function(newValue) ICU.savedVariables.trade = newValue end,
-            ["disabled"] = function() return isCallingDisabled() end,
-        },
-    }
-    LAM2:RegisterOptionControls("ICU_Settings", optionsData)
 end
 
 -- Load savedVars
