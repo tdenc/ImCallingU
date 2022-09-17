@@ -13,6 +13,7 @@ function ICU.CreateSettingsWindow()
         registerForRefresh = true,
         registerForDefaults = true,
         website = "https://www.esoui.com/downloads/info3147-ImCallingU-Dontmissnotification.html",
+        donation = "https://www.paypal.me/tdenc",
     }
     local cntrlOptionsPanel = LAM2:RegisterAddonPanel("ICU_Settings", panelData)
 
