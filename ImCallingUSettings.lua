@@ -107,6 +107,31 @@ function ICU.CreateSettingsWindow()
         },
         {
             ["type"] = "header",
+            ["name"] = GetString(SI_PATHFOLLOWTYPE1),
+        },
+        {
+            ["type"] = "checkbox",
+            ["name"] = "∞",
+            ["default"] = dS.infinity,
+            ["getFunc"] = function() return sV.infinity end,
+            ["setFunc"] = function(newValue) sV.infinity = newValue end,
+            ["disabled"] = function() return ICU.IsCallingDisabled() end,
+            ["width"] = "half",
+        },
+        {
+            ["type"] = "slider",
+            ["name"] = string.format("%s (%s)", GetString(SI_ABILITY_TOOLTIP_DURATION_LABEL), zo_strformat(GetString(SI_STR_TIME_DESC_SECONDS_ONLY_SHORT))),
+            ["min"] = 2,
+            ["max"] = 600,
+            ["step"] = 2,
+            ["default"] = dS.duration,
+            ["getFunc"] = function() return sV.duration end,
+            ["setFunc"] = function(newValue) sV.duration = newValue end,
+            ["disabled"] = function() return ICU.IsCallingDisabled() or sV.infinity end,
+            ["width"] = "half",
+        },
+        {
+            ["type"] = "header",
             ["name"] = GetString(SI_GAMEPAD_CONTACTS_STATUS_DO_NOT_DISTURB),
         },
         {
@@ -116,6 +141,7 @@ function ICU.CreateSettingsWindow()
             ["getFunc"] = function() return sV.combat end,
             ["setFunc"] = function(newValue) sV.combat = newValue end,
             ["disabled"] = function() return ICU.IsCallingDisabled() end,
+            ["width"] = "half",
         },
         {
             ["type"] = "checkbox",
@@ -124,6 +150,7 @@ function ICU.CreateSettingsWindow()
             ["getFunc"] = function() return sV.pvp end,
             ["setFunc"] = function(newValue) sV.pvp = newValue end,
             ["disabled"] = function() return ICU.IsCallingDisabled() end,
+            ["width"] = "half",
         },
         {
             type = "submenu", name = GetString(SI_SOCIAL_OPTIONS_NOTIFICATIONS), controls = {

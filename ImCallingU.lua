@@ -6,13 +6,15 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.4"
+ICU.version = "0.1.5"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
 ICU.defaultSettings = {
     ["se"] = 2,
     ["volume"] = tonumber(GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME)),
+    ["infinity"] = true,
+    ["duration"] = 300,
     ["vibration"] = 80,
     ["activity"] = true,
     ["ready"] = true,
@@ -80,7 +82,14 @@ function ICU.IsCallingDisabled()
     return ICU.savedVariables.se == 1 and (GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "0" or ICU.savedVariables.vibration == 0)
 end
 
-function ICU.PlaySound()
+function ICU.PlaySound(eventCode)
+    if (not ICU.savedVariables.infinity and (ICU.duration[eventCode] > ICU.savedVariables.duration)) then
+        ICU.UnregisterUpdate(eventCode)
+        return
+    else
+        ICU.duration[eventCode] = ICU.duration[eventCode] + 2
+    end
+
     if ICU.userVibration then
         SetGamepadVibration(1000, ICU.vibrationIntensity, ICU.vibrationIntensity / 2, 0, 0, ICU.name)
     end
@@ -92,16 +101,20 @@ function ICU.RegisterUpdate(eventCode)
     if ((IsPlayerInAvAWorld() or IsActiveWorldBattleground()) and ICU.savedVariables.pvp) then return end
     if (IsUnitInCombat("player") and ICU.savedVariables.combat) then return end
 
-    EM:UnregisterForUpdate(ICU.name)
+    EM:UnregisterForUpdate(string.format("%s_%i", ICU.name, eventCode))
     ICU.isCalling = true
+    ICU.duration[eventCode] = 0
     setVolume(ICU.savedVariables.volume)
-    ICU.PlaySound()
-    EM:RegisterForUpdate(string.format("%s_%i", ICU.name, eventCode), 2000, ICU.PlaySound)
+    ApplySettings()
+    ICU.PlaySound(eventCode)
+    EM:RegisterForUpdate(string.format("%s_%i", ICU.name, eventCode), 2000, function() ICU.PlaySound(eventCode) end)
 end
 
 function ICU.UnregisterUpdate(eventCode)
     ICU.isCalling = false
+    ICU.duration[eventCode] = 0
     setVolume(ICU.userVolume)
+    ApplySettings()
     EM:UnregisterForUpdate(string.format("%s_%i", ICU.name, eventCode))
 end
 
@@ -154,8 +167,8 @@ function ICU.OnEventTriggered(eventCode, ...)
         if sV.trade then ICU.UnregisterUpdate(EVENT_TRADE_INVITE_CONSIDERING) end
     -- Whisper
     elseif (eventCode == EVENT_CHAT_MESSAGE_CHANNEL) then
-        local channelType = ...
-        if sV.chat[channelType] then
+        local channelType, _, _, _, fromDisplayName = ...
+        if (sV.chat[channelType] and fromDisplayName ~= GetUnitDisplayName("player")) then
             ICU.RegisterUpdate(EVENT_CHAT_MESSAGE_CHANNEL)
         end
     end
@@ -197,6 +210,7 @@ end
 function ICU:Initialize()
     ICU.savedVariables = ZO_SavedVars:NewAccountWide("ICUSavedVars", ICU.variableVersion, nil, ICU.defaultSettings)
     ICU.isCalling = false
+    ICU.duration = {}
     ICU.userVolume = tonumber(GetSetting(SETTING_TYPE_AUDIO, AUDIO_SETTING_UI_VOLUME))
     ICU.userVibration = GetSetting(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_VIBRATION) == "1"
     ICU.vibrationIntensity = ICU.savedVariables.vibration / 100
