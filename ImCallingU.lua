@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.1"
+ICU.version = "0.1.2"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -116,9 +116,9 @@ function ICU.OnEventTriggered(eventCode, ...)
     if (eventCode == EVENT_ACTIVITY_FINDER_STATUS_UPDATE) then
         if sV.activity then
             local result = ...
-            if (result == ACTIVITY_FINDER_STATUS_READY_CHECK) then
+            if (result == ACTIVITY_FINDER_STATUS_READY_CHECK and HasLFGReadyCheckNotification()) then
                 ICU.RegisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE)
-            elseif not HasLFGReadyCheckNotification() then
+            else
                 ICU.UnregisterUpdate(EVENT_ACTIVITY_FINDER_STATUS_UPDATE)
             end
         end
