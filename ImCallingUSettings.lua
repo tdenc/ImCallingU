@@ -180,6 +180,22 @@ function ICU.CreateSettingsWindow()
                 },
                 {
                     ["type"] = "checkbox",
+                    ["name"] = GetString(SI_PROMPT_TITLE_SHARE_QUEST),
+                    ["default"] = dS.share,
+                    ["getFunc"] = function() return sV.share end,
+                    ["setFunc"] = function(newValue) sV.share = newValue end,
+                    ["disabled"] = function() return ICU.IsCallingDisabled() end,
+                },
+                {
+                    ["type"] = "checkbox",
+                    ["name"] = GetString(SI_ZONECOMPLETIONTYPE8),
+                    ["default"] = dS.event,
+                    ["getFunc"] = function() return sV.event end,
+                    ["setFunc"] = function(newValue) sV.event = newValue end,
+                    ["disabled"] = function() return ICU.IsCallingDisabled() end,
+                },
+                {
+                    ["type"] = "checkbox",
                     ["name"] = GetString(SI_NOTIFICATION_FRIEND_INVITE),
                     ["default"] = dS.friend,
                     ["getFunc"] = function() return sV.friend end,

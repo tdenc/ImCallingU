@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.8"
+ICU.version = "0.1.9"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -19,6 +19,8 @@ ICU.defaultSettings = {
     ["activity"] = true,
     ["campaign"] = true,
     ["ready"] = true,
+    ["share"] = true,
+    ["event"] = true,
     ["friend"] = true,
     ["guild"] = true,
     ["group"] = true,
@@ -153,6 +155,16 @@ function ICU.OnEventTriggered(eventCode, ...)
         if sV.ready then ICU.RegisterUpdate(EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) end
     elseif (eventCode == EVENT_GROUP_ELECTION_NOTIFICATION_REMOVED) then
         if sV.ready then ICU.UnregisterUpdate(EVENT_GROUP_ELECTION_NOTIFICATION_ADDED) end
+    -- Quest share
+    elseif (eventCode == EVENT_QUEST_SHARED) then
+        if sV.share then ICU.RegisterUpdate(EVENT_QUEST_SHARED) end
+    elseif (eventCode == EVENT_QUEST_SHARE_REMOVED) then
+        if sV.share then ICU.UnregisterUpdate(EVENT_QUEST_SHARED) end
+    -- World event
+    elseif (eventCode == EVENT_SCRIPTED_WORLD_EVENT_INVITE) then
+        if sV.event then ICU.RegisterUpdate(EVENT_SCRIPTED_WORLD_EVENT_INVITE) end
+    elseif (eventCode == EVENT_SCRIPTED_WORLD_EVENT_INVITE_REMOVED) then
+        if sV.event then ICU.UnregisterUpdate(EVENT_SCRIPTED_WORLD_EVENT_INVITE) end
     -- Friend invite
     elseif (eventCode == EVENT_INCOMING_FRIEND_INVITE_ADDED) then
         if sV.friend then ICU.RegisterUpdate(EVENT_INCOMING_FRIEND_INVITE_ADDED) end
@@ -197,6 +209,8 @@ function ICU:RegisterEvents()
         EVENT_ACTIVITY_FINDER_STATUS_UPDATE,
         EVENT_CAMPAIGN_QUEUE_STATE_CHANGED, EVENT_CAMPAIGN_QUEUE_LEFT,
         EVENT_GROUP_ELECTION_NOTIFICATION_ADDED, EVENT_GROUP_ELECTION_NOTIFICATION_REMOVED,
+        EVENT_QUEST_SHARED, EVENT_QUEST_SHARE_REMOVED,
+        EVENT_SCRIPTED_WORLD_EVENT_INVITE, EVENT_SCRIPTED_WORLD_EVENT_INVITE_REMOVED,
         EVENT_INCOMING_FRIEND_INVITE_ADDED, EVENT_INCOMING_FRIEND_INVITE_REMOVED,
         EVENT_GUILD_INVITE_ADDED, EVENT_GUILD_INVITE_REMOVED,
         EVENT_GROUP_INVITE_RECEIVED, EVENT_GROUP_INVITE_REMOVED,
