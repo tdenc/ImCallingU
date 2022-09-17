@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.1.6"
+ICU.version = "0.1.7"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
@@ -83,7 +83,7 @@ function ICU.IsCallingDisabled()
 end
 
 function ICU.PlaySound(eventCode)
-    if (not ICU.savedVariables.infinity and (ICU.duration[eventCode] > ICU.savedVariables.duration)) then
+    if (not ICU.savedVariables.infinity and (ICU.duration[eventCode] >= ICU.savedVariables.duration)) then
         ICU.UnregisterUpdate(eventCode)
         return
     else
