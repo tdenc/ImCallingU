@@ -6,7 +6,7 @@ local EM = EVENT_MANAGER
 --INITIATE VARIABLES--
 ----------------------
 ICU.name = "ImCallingU"
-ICU.version = "0.4.2"
+ICU.version = "0.5.0"
 ICU.variableVersion = 1
 ICU.chatChannels = {
 }
